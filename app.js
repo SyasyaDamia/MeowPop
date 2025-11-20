@@ -67,17 +67,17 @@ function App() {
       setAnimType('dislike');
     }
 
-    // Load next card dynamically
-    const nextIdx = idx + 1;
-    if (nextIdx < TOTAL_CATS) {
-      const nextUrl = fetchCatUrl();
-      const img = new Image();
-      img.src = nextUrl;
-      img.onload = () => setImages(prev => [...prev, nextUrl]);
-      img.onerror = () => setImages(prev => [...prev, nextUrl]);
-    }
+    // // Load next card dynamically
+    // const nextIdx = idx + 1;
+    // if (nextIdx < TOTAL_CATS) {
+    //   const nextUrl = fetchCatUrl();
+    //   const img = new Image();
+    //   img.src = nextUrl;
+    //   img.onload = () => setImages(prev => [...prev, nextUrl]);
+    //   img.onerror = () => setImages(prev => [...prev, nextUrl]);
+    // }
 
-    setIdx(nextIdx);
+    setIdx(idx + 1);
     setTimeout(() => { setShowToast(null); setAnimType(null); }, 900);
   }
   
@@ -89,13 +89,25 @@ function App() {
     setShowToast('Reset — swipe again!');
     setTimeout(() => setShowToast(null), 900);
 
-    // preload first card again
-    const url = fetchCatUrl();
-    const img = new Image();
-    img.src = url;
-    img.onload = () => setImages([url]);
-    img.onerror = () => setImages([url]);
+    // Preload all 14 cards again
+    const urls = Array.from({ length: TOTAL_CATS }, () => fetchCatUrl());
+    let loadedCount = 0;
+    const loadedImages = [];
+
+    urls.forEach((url, i) => {
+      const img = new Image();
+      img.src = url;
+      img.onload = img.onerror = () => {
+        loadedImages[i] = url;
+        loadedCount++;
+        if (loadedCount === TOTAL_CATS) {
+          setImages(loadedImages);
+          setLoading(false);
+        }
+      };
+    });
   }
+
 
   if (loading) return (
     React.createElement('div',{className:'bg-white/80 rounded-3xl shadow-xl p-8 text-center'},
