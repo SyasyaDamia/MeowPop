@@ -1,41 +1,24 @@
-:root {
+:root{
   --bg1:#fff7fb;
   --bg2:#fffaf2;
   --accent:#ff6bcb;
   --accent-2:#ffcc33;
 }
 
-html, body, #root { height: 100%; }
+html,body,#root{height:100%}
+body{background:linear-gradient(160deg,var(--bg1),var(--bg2));-webkit-font-smoothing:antialiased}
+.card{will-change:transform,opacity;touch-action:none}
+.card-stack > *{position:absolute;left:0;right:0}
+.badge-like{transform:translateY(-10px) scale(0.95);opacity:0;transition:all 180ms ease}
+.badge-show{transform:translateY(0) scale(1);opacity:1}
+.no-select{-webkit-user-select:none;-ms-user-select:none;user-select:none}
 
-body {
-  background: linear-gradient(160deg, var(--bg1), var(--bg2));
-  -webkit-font-smoothing: antialiased;
-}
+/* liked & disliked animation */
+@keyframes popHeart {0% {transform: scale(0); opacity:1;}50% {transform: scale(1.5);}100% {transform: scale(1); opacity:0;}}
+.heart-anim {position:fixed;top:50%;left:50%;font-size:4rem;pointer-events:none;animation:popHeart 1.5s forwards;transform:translate(-50%, -50%) scale(0); z-index:2000;}
 
-.card {
-  will-change: transform, opacity;
-  touch-action: none;
-}
+@keyframes popSad {0%{transform: scale(0); opacity:1;}50%{transform: scale(1.5);}100%{transform: scale(1); opacity:0;}}
+.sad-anim {position:fixed;top:50%;left:50%;font-size:4rem;pointer-events:none;animation:popSad 1.5s forwards;transform:translate(-50%, -50%) scale(0); z-index:2000;}
 
-.card-stack > * {
-  position: absolute;
-  left: 0;
-  right: 0;
-}
-
-.badge-like {
-  transform: translateY(-10px) scale(0.95);
-  opacity: 0;
-  transition: all 180ms ease;
-}
-
-.badge-show {
-  transform: translateY(0) scale(1);
-  opacity: 1;
-}
-
-.no-select {
-  -webkit-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-}
+#likedModal {position:fixed;top:0;right:-100%;width:300px;height:100%;background:white;box-shadow:-2px 0 12px rgba(0,0,0,0.2);transition:right 0.3s;z-index:1500;padding:1rem;}
+#likedModal.open {right:0;}

@@ -1,111 +1,159 @@
-import React, { useState, useEffect } from 'https://esm.sh/react@18.2.0';
-import { createRoot } from 'https://esm.sh/react-dom@18.2.0/client';
-import { fetchCatUrls, CAT_COUNT, LS_KEY } from './utils.js';
-import { CardStack } from './swipe.js';
+const { useState, useEffect, useRef } = React;
+const CAT_COUNT = 14;
+const LS_KEY = 'meowpop_liked';
 
 function App(){
   const [images,setImages] = useState([]);
   const [idx,setIdx] = useState(0);
-  const [liked,setLiked] = useState(()=>JSON.parse(localStorage.getItem(LS_KEY) || '[]'));
+  const [liked,setLiked] = useState(()=>{ 
+    try{ return JSON.parse(localStorage.getItem(LS_KEY)||'[]') } catch(e){return []} 
+  });
   const [loading,setLoading] = useState(true);
   const [showToast,setShowToast] = useState(null);
+  const [animType,setAnimType] = useState(null); 
+  const [modalOpen,setModalOpen] = useState(false);
 
   useEffect(()=>{
     const urls = fetchCatUrls(CAT_COUNT);
     let loaded=0, arr=[];
     urls.forEach((u,i)=>{
-      const img = new Image(); img.src=u;
-      img.onload = ()=>{ loaded++; arr[i]=u; if(loaded===urls.length){ setImages(arr); setLoading(false); } }
-      img.onerror = ()=>{ loaded++; arr[i]=u; if(loaded===urls.length){ setImages(arr); setLoading(false); } }
-    })
+      const img = new Image();
+      img.src=u;
+      img.onload=()=>{loaded++; arr[i]=u; if(loaded===urls.length){setImages(arr); setLoading(false)}};
+      img.onerror=()=>{loaded++; arr[i]=u; if(loaded===urls.length){setImages(arr); setLoading(false)}};
+    });
   },[]);
 
-  useEffect(()=>{ localStorage.setItem(LS_KEY, JSON.stringify(liked)) },[liked]);
+  useEffect(()=>{ localStorage.setItem(LS_KEY,JSON.stringify(liked)) },[liked]);
 
   useEffect(()=>{
-    const onKey = (e)=>{
+    const onKey=(e)=>{
       if(loading) return;
       if(e.key==='ArrowRight') choose('like');
       if(e.key==='ArrowLeft') choose('dislike');
       if(e.key.toLowerCase()==='r') resetAll();
     }
-    window.addEventListener('keydown', onKey);
+    window.addEventListener('keydown',onKey);
     return ()=>window.removeEventListener('keydown',onKey);
   },[loading,idx,images,liked]);
 
   function choose(direction){
-    const u = images[idx]; if(!u) return;
-    if(direction==='like'){ setLiked(prev=>[...prev,u]); setShowToast('Added to purr-faves!'); }
-    else setShowToast('Maybe next meow 💭');
+    const u=images[idx]; if(!u) return;
+    if(direction==='like'){ 
+      setLiked(prev=>[...prev,u]); 
+      setShowToast('Added to purr-faves!');
+      setAnimType('like');
+    } 
+    else {
+      setShowToast('Maybe next meow 💭');
+      setAnimType('dislike');
+    }
     setIdx(i=>i+1);
-    setTimeout(()=>setShowToast(null),900);
+    setTimeout(()=>{setShowToast(null); setAnimType(null);},900);
   }
 
   function resetAll(){ setIdx(0); setLiked([]); setShowToast('Reset — swipe again!'); setTimeout(()=>setShowToast(null),900); }
+  function removeLiked(index){ setLiked(prev=>prev.filter((_,i)=>i!==index)); }
 
-  if(loading) return (
-    <div className="bg-white/80 rounded-3xl shadow-xl p-8 text-center">
-      <div className="text-2xl font-bold mb-2">MeowPop</div>
-      <p className="text-slate-600">Fetching your dose of fluff…</p>
-      <div className="mt-6 flex justify-center gap-2">
-        <div className="h-3 w-20 rounded-full bg-pink-200 animate-pulse"></div>
-        <div className="h-3 w-20 rounded-full bg-yellow-200 animate-pulse"></div>
-      </div>
-    </div>
-  );
-
-  if(idx>=images.length) return (
-    <div className="bg-white rounded-3xl shadow-xl p-6">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-bold">You're all caught up 🎉</h2>
-        <small className="text-slate-400">{liked.length}/{images.length} saved</small>
-      </div>
-      {liked.length>0 ? (
-        <div className="grid grid-cols-2 gap-3">
-          {liked.map((u,i)=><img key={i} src={u} alt={`liked ${i}`} className="w-full h-36 object-cover rounded-lg"/>)}
-        </div>
-      ) : (<p className="text-slate-500">No purr-faves yet. Try again?</p>)}
-      <div className="mt-5 flex gap-3 justify-center">
-        <button className="px-4 py-2 rounded-full border" onClick={resetAll}>Try again</button>
-        <button className="px-4 py-2 rounded-full bg-accent text-white" onClick={()=>{localStorage.removeItem(LS_KEY); window.location.reload()}}>Clear & Refresh</button>
-      </div>
-    </div>
+  if (loading) return React.createElement(
+    'div',
+    { className: 'bg-white/80 rounded-3xl shadow-xl p-8 text-center' },
+    React.createElement('div', { className: 'text-2xl font-bold mb-2' }, 'MeowPop'),
+    React.createElement('p', { className: 'text-slate-600' }, 'Fetching your dose of fluff…'),
+    React.createElement(
+      'div',
+      { className: 'mt-6 flex justify-center gap-2' },
+      React.createElement('div', { className: 'h-3 w-20 rounded-full bg-pink-200 animate-pulse' }),
+      React.createElement('div', { className: 'h-3 w-20 rounded-full bg-yellow-200 animate-pulse' })
+    )
   );
 
   return (
-    <div className="bg-white rounded-3xl shadow-xl p-4 border">
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-3">
-          <div className="rounded-full bg-gradient-to-br from-pink-300 to-yellow-200 w-10 h-10 flex items-center justify-center text-xl">🐱</div>
-          <div>
-            <div className="font-bold text-lg">MeowPop</div>
-            <div className="text-xs text-slate-400">Swipe to discover your purr-fect match</div>
-          </div>
-        </div>
-        <div className="text-sm text-slate-400">{idx}/{images.length}</div>
-      </div>
+    React.createElement('div',{className:'bg-white rounded-3xl shadow-xl p-4 border relative'},
+      React.createElement('div',{className:'flex items-center justify-between mb-3'},
+        React.createElement('div',{className:'flex items-center gap-3'},
+          React.createElement('div',{className:'rounded-full bg-gradient-to-br from-pink-300 to-yellow-200 w-10 h-10 flex items-center justify-center text-xl'},'🐱'),
+          React.createElement('div',null,
+            React.createElement('div',{className:'font-bold text-lg'},'MeowPop'),
+            React.createElement('div',{className:'text-xs text-slate-400'},'Swipe to discover your purr-fect match')
+          )
+        ),
+        React.createElement('div',{className:'flex gap-2 items-center'},
+          React.createElement('button',{className:'text-sm bg-pink-500 text-white px-2 py-1 rounded', onClick:()=>setModalOpen(!modalOpen)},'Liked Cats')
+        )
+      ),
+      React.createElement('div',{className:'relative h-[62vh] flex items-center justify-center'},
+        React.createElement(CardStack,{images:images,startIndex:idx,onChoice:choose})
+      ),
+      React.createElement('div',{className:'mt-4 flex items-center justify-between'},
+        React.createElement('div',{className:'flex items-center gap-3'},
+          React.createElement('button',{onClick:()=>choose('dislike'),className:'w-14 h-14 rounded-full bg-white border shadow-sm flex items-center justify-center text-2xl'},'😿'),
+          React.createElement('button',{onClick:()=>choose('like'),className:'w-14 h-14 rounded-full bg-gradient-to-br from-pink-500 to-yellow-400 text-white shadow-lg flex items-center justify-center text-2xl'},'😻')
+        ),
+        React.createElement('div',{className:'text-sm text-slate-400'},'Tip: use ← / → keys or tap emojis')
+      ),
+      React.createElement('div',{className:'pointer-events-none fixed bottom-8 left-0 right-0 flex justify-center'},
+        React.createElement('div',{className:`bg-white/90 px-4 py-2 rounded-full shadow transition-opacity ${showToast?'opacity-100':'opacity-0'}`},
+          React.createElement('div',{className:'text-sm'},showToast)
+        )
+      ),
+      animType==='like' && React.createElement('div',{className:'heart-anim'},'😻'),
+      animType==='dislike' && React.createElement('div',{className:'sad-anim'},'😿'),
 
-      <div className="relative h-[62vh] flex items-center justify-center">
-        <CardStack images={images} startIndex={idx} onChoice={choose}/>
-      </div>
-
-      <div className="mt-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <button onClick={()=>choose('dislike')} className="w-14 h-14 rounded-full bg-white border shadow-sm flex items-center justify-center text-2xl">😿</button>
-          <button onClick={()=>choose('like')} className="w-14 h-14 rounded-full bg-gradient-to-br from-pink-500 to-yellow-400 text-white shadow-lg flex items-center justify-center text-2xl">😻</button>
-        </div>
-        <div className="text-sm text-slate-400">Tip: use ← / → keys or tap emojis</div>
-      </div>
-
-      <div aria-live="polite" className="pointer-events-none fixed bottom-8 left-0 right-0 flex justify-center">
-        <div className={`bg-white/90 px-4 py-2 rounded-full shadow transition-opacity ${showToast ? 'opacity-100' : 'opacity-0'}`}>
-          <div className="text-sm">{showToast||''}</div>
-        </div>
-      </div>
-
-    </div>
+      React.createElement('div',{id:'likedModal', className:modalOpen?'open':''},
+        React.createElement('div',{className:'flex justify-between items-center mb-2'},
+          React.createElement('div',{className:'font-semibold'},`Liked Cats (${liked.length})`),
+          React.createElement('button',{className:'text-sm text-red-500',onClick:()=>setLiked([])},'Clear All')
+        ),
+        liked.length>0 ? 
+          React.createElement('div',{className:'grid grid-cols-2 gap-2'}, liked.map((u,i)=>
+            React.createElement('div',{key:i,className:'relative'},
+              React.createElement('img',{src:u,alt:'liked cat',className:'w-full h-24 object-cover rounded-lg'}),
+              React.createElement('button',{className:'absolute top-1 right-1 bg-white rounded-full p-1 text-red-500 shadow',onClick:()=>removeLiked(i)},'✕')
+            )
+          )) : React.createElement('p',{className:'text-slate-500 text-sm'},'No liked cats yet.')
+      )
+    )
   );
 }
 
-const root = createRoot(document.getElementById('root'));
-root.render(<App />);
+function CardStack({images,startIndex,onChoice}){
+  const at=startIndex;
+  return React.createElement('div',{className:'w-full max-w-md relative', style:{height:'100%'}},
+    React.createElement('div',{className:'card-stack w-full h-full'},
+      images.slice(at).slice(0,6).reverse().map((u,i)=>{
+        const stackIndex=i;
+        const isTop=i===images.slice(at).slice(0,6).length-1;
+        return React.createElement(SwipeCard,{key:u,img:u,offset:stackIndex,isTop:isTop,onChoice:onChoice});
+      })
+    )
+  );
+}
+
+function SwipeCard({img,offset=0,isTop=false,onChoice}){
+  const ref=useRef(null), start=useRef({x:0,y:0}), pos=useRef({x:0,y:0}), anim=useRef(null);
+  const [style,setStyle]=useState({transform:'translateY(0px) scale(1)',transition:'transform 220ms cubic-bezier(.2,.8,.2,1)'});
+  const [badges,setBadges]=useState({like:false,dislike:false});
+
+  useEffect(()=>{ const base=Math.min(offset,4), scale=1-base*0.03, ty=base*8; setStyle({transform:`translateY(${ty}px) scale(${scale})`,transition:'transform 220ms cubic-bezier(.2,.8,.2,1)'}) },[offset]);
+
+  function getPoint(e){ return e.touches? {x:e.touches[0].clientX,y:e.touches[0].clientY}:{x:e.clientX,y:e.clientY} }
+  function down(e){ e.preventDefault(); const p=getPoint(e); start.current={x:p.x,y:p.y}; pos.current={x:0,y:0}; setStyle(s=>({...s,transition:''})); window.addEventListener('pointermove',move); window.addEventListener('pointerup',up) }
+  function move(e){ const p=getPoint(e); const dx=p.x-start.current.x, dy=p.y-start.current.y; pos.current={x:dx,y:dy}; const rot=dx/18; setStyle({transform:`translate(${dx}px, ${dy}px) rotate(${rot}deg)`,transition:''}); setBadges({like:dx>60,dislike:dx<-60}) }
+  function up(){ window.removeEventListener('pointermove',move); window.removeEventListener('pointerup',up); const dx=pos.current.x, thr=120; if(dx>thr){ const w=window.innerWidth; setStyle({transform:`translate(${w+300}px,${pos.current.y}px) rotate(30deg)`,transition:'transform 300ms ease'}); anim.current=setTimeout(()=>onChoice('like'),320) } else if(dx<-thr){ const w=window.innerWidth; setStyle({transform:`translate(-${w+300}px,${pos.current.y}px) rotate(-30deg)`,transition:'transform 300ms ease'}); anim.current=setTimeout(()=>onChoice('dislike'),320) } else { setStyle({transform:'translateY(0px) scale(1)',transition:'transform 220ms cubic-bezier(.2,.8,.2,1)'}); setBadges({like:false,dislike:false}) } }
+
+  useEffect(()=>{ const el=ref.current; el && el.addEventListener('pointerdown',down,{passive:false}); return ()=>{ el && el.removeEventListener('pointerdown',down); if(anim.current) clearTimeout(anim.current) } },[]);
+
+  return React.createElement('div',{ref:ref,className:'card bg-white rounded-2xl overflow-hidden shadow-lg w-full h-full no-select', style:{transform:style.transform,transition:style.transition,zIndex:1000-offset}},
+    React.createElement('div',{className:'relative flex-1 bg-gradient-to-b from-pink-50 to-yellow-50'},
+      React.createElement('img',{src:img,alt:'cute cat',className:'w-full h-full object-cover',draggable:false}),
+      React.createElement('div',{className:'pointer-events-none absolute inset-0 p-4 flex items-start justify-between'},
+        React.createElement('div',{className:`text-3xl font-extrabold drop-shadow-lg text-white ${badges.like?'badge-show':'badge-like'}`, style:{textShadow:'0 6px 18px rgba(255,107,203,0.25)',color:'var(--accent)'}},'😻'),
+        React.createElement('div',{className:`text-3xl font-extrabold drop-shadow-lg text-white ${badges.dislike?'badge-show':'badge-like'}`, style:{textShadow:'0 6px 18px rgba(0,0,0,0.18)',color:'rgba(99,102,241,0.9)'}},'😿')
+      )
+    ),
+    React.createElement('div',{className:'p-3 border-t text-sm text-slate-600'},'Tap an emoji or swipe — double-tap to zoom')
+  )
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
