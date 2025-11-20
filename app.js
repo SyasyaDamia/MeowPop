@@ -57,11 +57,9 @@ function App() {
       setAnimType('dislike');
     }
 
-    // ⛔ Move to next card IMMEDIATELY
     const nextIdx = idx + 1;
     setIdx(nextIdx);
 
-    // ✔️ preload the next one IN THE BACKGROUND
     if (nextIdx < TOTAL_CATS) {
       const nextUrl = fetchCatUrl();
       const img = new Image();
@@ -76,7 +74,6 @@ function App() {
       setAnimType(null);
     }, 900);
   }
-
 
     // // Load next card dynamically
     // const nextIdx = idx + 1;
