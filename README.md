@@ -5,6 +5,11 @@
 
 ---
 
+## **Live Demo**
+**Try it live here**: [MeowPop Live Demo](https://syasyadamia.github.io/MeowPop/)
+
+---
+
 ## **Features**
 - Swipe **right** to **like** a cat, swipe **left** to **dislike**.
 - Keyboard shortcuts:  
