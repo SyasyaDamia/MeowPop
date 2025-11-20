@@ -3,7 +3,9 @@ const TOTAL_CATS = 14;
 const LS_KEY = 'meowpop_liked';
 
 function fetchCatUrl() {
-  return `https://cataas.com/cat?width=800&height=1000&random=${Date.now()}-${Math.random()}`;
+  const width = window.innerWidth > 600 ? 800 : 400; // smaller width for mobile
+  const height = window.innerWidth > 600 ? 1000 : 500; // smaller height for mobile
+  return `https://cataas.com/cat?width=${width}&height=${height}&random=${Date.now()}-${Math.random()}`;
 }
 
 function App() {
@@ -18,24 +20,14 @@ function App() {
   const [animType, setAnimType] = useState(null);
   
   useEffect(() => {
-    const urls = Array.from({ length: TOTAL_CATS }, () => fetchCatUrl());
-    let loadedCount = 0;
-    const loadedImages = [];
-
-    urls.forEach((url, i) => {
-      const img = new Image();
-      img.src = url;
-      img.onload = img.onerror = () => {
-        loadedImages[i] = url;
-        loadedCount++;
-        if (loadedCount === TOTAL_CATS) {
-          setImages(loadedImages);
-          setLoading(false);
-        }
-      };
-    });
+    const firstUrl = fetchCatUrl();
+    const img = new Image();
+    img.src = firstUrl;
+    img.onload = img.onerror = () => {
+      setImages([firstUrl]);
+      setLoading(false);
+    };
   }, []);
-
 
   useEffect(() => {
     localStorage.setItem(LS_KEY, JSON.stringify(liked));
@@ -65,6 +57,26 @@ function App() {
       setAnimType('dislike');
     }
 
+    const nextIdx = idx + 1;
+    if (nextIdx < TOTAL_CATS) {
+      const nextUrl = fetchCatUrl();
+      const img = new Image();
+      img.src = nextUrl;
+      img.onload = () => {
+        setImages(prev => [...prev, nextUrl]);
+        setIdx(nextIdx); // advance only when loaded
+      };
+      img.onerror = () => {
+        setImages(prev => [...prev, nextUrl]);
+        setIdx(nextIdx); // still advance even if fail
+      };
+    } else {
+      setIdx(nextIdx); // done
+    }
+
+    setTimeout(() => { setShowToast(null); setAnimType(null); }, 900);
+  }
+
     // // Load next card dynamically
     // const nextIdx = idx + 1;
     // if (nextIdx < TOTAL_CATS) {
@@ -74,11 +86,6 @@ function App() {
     //   img.onload = () => setImages(prev => [...prev, nextUrl]);
     //   img.onerror = () => setImages(prev => [...prev, nextUrl]);
     // }
-
-    setIdx(idx + 1);
-    setTimeout(() => { setShowToast(null); setAnimType(null); }, 900);
-  }
-  
 
   function resetAll() {
     setIdx(0);
@@ -145,7 +152,9 @@ function App() {
 
     // Card stack
     React.createElement('div',{className:'relative h-[62vh] flex items-center justify-center'},
-      images[idx] && React.createElement(SwipeCard,{img:images[idx],onChoice:choose})
+      images[idx] 
+        ? React.createElement(SwipeCard,{img:images[idx],onChoice:choose})
+        : React.createElement('div',{className:'w-full h-full bg-gray-200 rounded-2xl animate-pulse'})
     ),
 
     // Action buttons
