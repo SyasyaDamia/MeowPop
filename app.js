@@ -10,15 +10,13 @@ function App() {
   const [images, setImages] = useState([]); // preloaded images stack
   const [idx, setIdx] = useState(0);
   const [liked, setLiked] = useState(() => {
-    localStorage.removeItem(LS_KEY); // <- clear previous likes
+    localStorage.removeItem(LS_KEY); // clear previous likes
     return [];
   });
   const [loading, setLoading] = useState(true);
   const [showToast, setShowToast] = useState(null);
   const [animType, setAnimType] = useState(null);
   
-
-  // Preload all 14 cards at the start
   useEffect(() => {
     const urls = Array.from({ length: TOTAL_CATS }, () => fetchCatUrl());
     let loadedCount = 0;
@@ -89,7 +87,7 @@ function App() {
     setShowToast('Reset — swipe again!');
     setTimeout(() => setShowToast(null), 900);
 
-    // Preload all 14 cards again
+    // Preload all images
     const urls = Array.from({ length: TOTAL_CATS }, () => fetchCatUrl());
     let loadedCount = 0;
     const loadedImages = [];
@@ -120,7 +118,7 @@ function App() {
     )
   );
 
-  // Finished all cats
+  // Summary
   if (idx >= TOTAL_CATS) {
     return React.createElement('div',{className:'bg-white rounded-3xl shadow-xl p-4 text-center'},
       React.createElement('h2',{className:'text-xl font-bold mb-2'}, 'All done! 😸'),
@@ -159,18 +157,16 @@ function App() {
       React.createElement('div',{className:'text-sm text-slate-400'},'Tip: use ← / → keys or tap emojis')
     ),
 
-    // Toast
     showToast && React.createElement('div',{className:'pointer-events-none fixed bottom-8 left-0 right-0 flex justify-center'},
       React.createElement('div',{className:'bg-white/90 px-4 py-2 rounded-full shadow'}, showToast)
     ),
 
-    // Like/dislike animations
+    // Like&dislike animations
     animType==='like' && React.createElement('div',{className:'heart-anim'},'😻'),
     animType==='dislike' && React.createElement('div',{className:'sad-anim'},'😿')
   );
 }
 
-// SwipeCard component with double-tap zoom
 function SwipeCard({img,onChoice}){
   const ref=useRef(null), start=useRef({x:0,y:0}), pos=useRef({x:0,y:0}), anim=useRef(null);
   const [style,setStyle] = useState({transform:'translateY(0px) scale(1)',transition:'transform 220ms cubic-bezier(.2,.8,.2,1)'});
