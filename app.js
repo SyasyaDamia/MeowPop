@@ -57,25 +57,26 @@ function App() {
       setAnimType('dislike');
     }
 
+    // ⛔ Move to next card IMMEDIATELY
     const nextIdx = idx + 1;
+    setIdx(nextIdx);
+
+    // ✔️ preload the next one IN THE BACKGROUND
     if (nextIdx < TOTAL_CATS) {
       const nextUrl = fetchCatUrl();
       const img = new Image();
       img.src = nextUrl;
-      img.onload = () => {
+      img.onload = img.onerror = () => {
         setImages(prev => [...prev, nextUrl]);
-        setIdx(nextIdx); // advance only when loaded
       };
-      img.onerror = () => {
-        setImages(prev => [...prev, nextUrl]);
-        setIdx(nextIdx); // still advance even if fail
-      };
-    } else {
-      setIdx(nextIdx); // done
     }
 
-    setTimeout(() => { setShowToast(null); setAnimType(null); }, 900);
+    setTimeout(() => {
+      setShowToast(null);
+      setAnimType(null);
+    }, 900);
   }
+
 
     // // Load next card dynamically
     // const nextIdx = idx + 1;
