@@ -1,7 +1,7 @@
 # MeowPop - Playful Edition
 
 ## **Overview**
-**MeowPop** is a fun **React app** that lets users swipe through random cat images. Users can like or dislike cats, and their favorites are saved for review. The app preloads all images for a smooth experience.
+**MeowPop** is a fun **React app** that lets users swipe through random cat images. Users can like or dislike cats, and their favorites are saved for review at the summary. 
 
 ---
 
